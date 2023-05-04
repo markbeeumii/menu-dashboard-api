@@ -1,0 +1,142 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Khmer&display=swap');
+
+*{
+  font-family: 'Noto Sans Khmer', sans-serif;
+}
+
+.mt-60{
+  margin-top: 60px !important;
+}
+.object-fit{
+  object-fit: cover !important;
+}
+.text-limit{
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2; /* number of lines to show */
+            line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+
+img .cursor-pointer{
+  cursor: pointer !important;
+}
+
+.bg-ddd{
+  background-color: #ddd !important;
+}
+
+.col-6 .form-login ~{
+  width: 100% !important;
+}
+
+.col-6 .form-login .login-form{
+  width: 100% !important;
+}
+
+
+
+
+/*responsive code*/
+/*mobile phone*/
+@media (max-width: 575px) {
+  .col-md-4{
+    width: 100% !important;
+    padding: 5px !important;
+    margin-bottom: 18px;
+  }
+  .col-md-4 .card{
+    width: 100% !important;
+  } 
+  .logo-ezy{
+    display: none !important;
+  }
+  .nav-bar{
+    width: 100% !important;
+  }
+  body .main-body{
+    width: 100% !important;
+    margin: 0;
+  }
+  
+  .menu-left{
+    width: 65% !important;
+  }
+
+  .main-body .form03{
+    width: 100%;
+  }
+  .form03 .rowcol{
+    display: flex !important;
+    flex-wrap: wrap !important;
+    /* margin-right: -15px;
+    margin-left: -15px; */
+  }
+  .form03 .rowcol .col-01{
+    flex: 0 0 auto;
+    width: 100%;
+    margin-top: 20px !important;
+  }
+  .main-body .form03 #description{
+    width: 100% !important;
+  }
+  #pic_profile{
+    display: none !important;
+  }
+  #menuicons{
+    display: block !important;
+  }
+  #col-6-slide{
+    display: none !important;
+  }
+  .col-6{
+    width: 100% !important;
+  }
+  .col-6 .form-login{
+    padding: 5px 8px;
+    width: 100% !important;
+  }
+  .col-6 .form-login .login-form{
+    width: 100% !important;
+  }
+
+  #menu-phone{
+    top: 7% !important;
+    display: block;
+  }
+  #menu-pc{
+    display: none !important;
+  }
+
+  #button-submit{
+    display: none;
+  }
+  #button-submit-phone{
+    display: block;
+  }
+}
+
+
+/*ipad*/
+@media (min-width: 768px) and (max-width: 991px) {
+  #menu-phone{
+    display: none;
+  }
+    
+} 
+
+/*ipad pro*/
+@media (min-width: 992px) and (max-width: 1199px) {
+  #menu-phone{
+    display: none;
+  }
+} 
+
+/*laptop*/
+@media (min-width: 1200px)  {
+  #menu-phone{
+    display: none;
+  }
+}
+
