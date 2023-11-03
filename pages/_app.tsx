@@ -1,20 +1,24 @@
-// import '@/styles/globals.css'
+
 import type { AppProps } from 'next/app'
 import { QueryClient, QueryClientProvider } from 'react-query'
 import MainLayout from './Layout/MainLayout'
 import 'bootstrap/dist/css/bootstrap.css'
-import { ReactQueryDevtools } from 'react-query/devtools'
-import '../styles/homepage.css'
-import '../styles/menu.css'
-import '../styles/form.css'
-import '@/styles/Button.scss'
 import { createContext, useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
-import { number } from 'joi'
+import '@/styles/main.scss'
 
-export const MenuContext = createContext({ menu: false, setMenu: (menu: boolean) => { } })
-export const PageContext = createContext({ page: false, setPage: (page: boolean) => { } })
-export const PageActive = createContext({ pageActive: 0, setPageActive: (pageActive: number) => { } })
+
+export const MenuContext = createContext({ 
+  menu: false, 
+  setMenu: (menu: boolean) => { } }
+  )
+export const PageContext = createContext({ 
+  page: false, 
+  setPage: (page: boolean) => { } })
+export const PageActive = createContext({ 
+  pageActive: 0, 
+  setPageActive: (pageActive: number) => { } })
+
 const queryclient = new QueryClient()
 
 export default function App({ Component, pageProps }: AppProps) {
@@ -25,7 +29,7 @@ export default function App({ Component, pageProps }: AppProps) {
 
   useEffect(()=>{
     if(window.localStorage.getItem('token')){
-      router.push('/')
+      //router.push('/')
       setMenu(true)
     }else{
       router.push({pathname:'/login'})

@@ -1,30 +1,20 @@
 import { MenuContext } from "@/pages/_app";
-import { CardCategory } from "@/src/components/CardCategory";
-import { MenuLeft } from "@/src/components/MenuLeft";
-import { Navbar } from "@/src/components/Navbar";
 import { AxiosClient_Cate, baseURL } from "@/src/libs/AxiosClient";
 import { capitalizeFirstLetter, handleFileUpload, imgUpload, trimAndDashToLower } from "@/src/libs/CapitalizaText";
 import axios from "axios";
 import { useRouter } from "next/router";
 import { useState,useContext } from "react";
-import {
-  AiOutlineTable,
-  AiOutlineDelete,
-  AiOutlineOrderedList,
-} from "react-icons/ai";
-import { TbEdit } from "react-icons/tb";
-import { useMutation, useQuery } from "react-query";
-import { Col } from "reactstrap";
 import Swal from "sweetalert2";
+import { useMutation, useQuery } from "react-query";
+import { isValidSlug } from "@/src/libs/servicesProvider";
+import { LoadingCom } from "@/src/components/LoadingComponent";
+
 
 const BaseURL = process.env.NEXT_URL_CATEGORY?process.env.NEXT_URL_CATEGORY: ''
 
-export const ViewCategory = ({ products, category }: any) => {
+export const ViewCategory = ({  category }: any) => {
   const router = useRouter();
   const { pid } = router.query;
-  const [list, setList] = useState(false);
-  const [edit, setEdit] = useState(false);
-  const [table, setTable] = useState(true);
   const [title_en, SetTitle_En] = useState(category?.title_en);
   const [title_kh, SetTitle_Kh] = useState(category?.title_kh);
   const [title_ch, SetTitle_Ch] = useState(category?.title_ch);
@@ -32,28 +22,27 @@ export const ViewCategory = ({ products, category }: any) => {
   const [des, SetDes] = useState(category?.description);
   const[imgcheck, SetImg]= useState('')
   const[validate_slug, setValidateSlug] = useState(category?.slug?false:true)
-  
+
   const {data} = useQuery({
     queryKey: 'categories',
     queryFn: async() => {
       return (await AxiosClient_Cate.get('/categories')).data.categories
     }
   })
-  const { mutate } = useMutation({
+  const { mutate, status } = useMutation({
     mutationKey: "category",
     mutationFn: async (input: any) => {
       return (await AxiosClient_Cate.patch(`/category/update/${pid}`, input))
         .data;
     },
     onError: (error: any) => {
-      const res = error.response.data.message;
-      Swal.fire({
-        icon: "error",
-        title: "Error!",
-        text: `${res}`,
-        showConfirmButton: false,
-        timer: 2000,
-      });
+      const message = error?.response?.data?.message
+      if(message?.split(" ")[0]==="This"){
+        setValidateSlug(true)
+      }else{
+        setValidateSlug(false)
+      }
+      
     },
     onSuccess: () => {
       Swal.fire({
@@ -97,26 +86,16 @@ export const ViewCategory = ({ products, category }: any) => {
     mutate(Dataform);
   };
   const handleOnBlur = (e:any) =>{
-    //const product = data?.map((s:any) => s.products)
-    const res = data?.map((p:any) => p.slug.toLowerCase() === e.toLowerCase());
-    //console.log(res)
-    let check:any
-    if(category.slug === e){
-      setValidateSlug(false)
+    if(!e){
+      setValidateSlug(true)
     }else{
-      let ch
-      for(let i=0; i< res.length; i++){
-        if(res[i]===true){
-          ch = res[i]
-        }
-        //ch = false 
-      }
+      setValidateSlug(false)
+      let ch = isValidSlug(e,data,String(pid))
       setValidateSlug(ch===undefined?false:ch)
-  }
+    }
   }
   const handleFileUpload = (e:any) => {
     if (!e.target.files || e.target.files.length === 0) {
-      //console.log('No file selected');
       SetImg('')
     }
     const files = e.target.files as FileList;
@@ -135,30 +114,32 @@ export const ViewCategory = ({ products, category }: any) => {
   }
 
   const handleBlueTitleEn= (e:any)=>{
-    if(!slug){
-      if(title_en){
+    //isValidSlug => Calling function from outisde(another files)
+    const save = isValidSlug(trimAndDashToLower(e?.target.value),data,String(pid));
+      if(!save){
         SetSlug(trimAndDashToLower(title_en))
-      }
-    }else{
-      if(title_en){
+        setValidateSlug(false)
+      }else{
         SetSlug(trimAndDashToLower(title_en))
+        setValidateSlug(true)
       }
-    }
   }
 
   const handelCancel = (e:any) =>{
     e.preventDefault()
-    SetTitle_En('')
-    SetTitle_Ch('')
-    SetTitle_Kh('')
-    SetSlug('')
-    SetDes("")
+    router.push('/category/list')
   }
 
   const isMenu = useContext(MenuContext)
-
+  
   return (
     <>
+      {/*Start Preloader Section*/}
+          <LoadingCom
+            status={status}
+          />
+      {/*End Preloader Section*/}
+
       <div className={isMenu.menu?"main-body":"d-none"}>
         <h3 className="text-info">admin/categories/edit</h3>
         <div className="mt-3">
@@ -174,6 +155,9 @@ export const ViewCategory = ({ products, category }: any) => {
                   onChange={(e: any) => SetTitle_En(capitalizeFirstLetter(e.target.value))}
                   onBlur={handleBlueTitleEn}
                 />
+                <div className="py-1">
+                  <p className={ !title_en ?" m-0 p-0":"d-none"} style={{color:"red"}}>The title en must required</p>
+                </div>
               </div>
               <div className="col-01">
                 <h6>Slug (uniqe)</h6>
@@ -185,7 +169,8 @@ export const ViewCategory = ({ products, category }: any) => {
                   onChange={(e: any) => SetSlug(e.target.value)}
                   onBlur={(e: any) => handleOnBlur(e.target.value)}
                 />
-                <p>{validate_slug?'Slug must uniqe':''}</p>
+                <p className={validate_slug && slug?"":"d-none"} style={{color:"red"}}>This slug is already in used</p>
+                <p className={validate_slug && !slug?"":"d-none"} style={{color:"red"}}>slug must required</p>
               </div>
             </div>
             <div className="rowcol mb-4 d-flex justify-content-between">
@@ -262,10 +247,10 @@ export default ViewCategory;
 export async function getServerSideProps(context: any) {
   const { pid } = context.query;
   const res = (await axios.get(baseURL+`/category/${pid}`)).data.category;
-  const products = res?.products;
+ 
   return {
     props: {
-      products,
+      //products:res,
       category: res,
     },
   };

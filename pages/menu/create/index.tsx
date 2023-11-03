@@ -1,23 +1,27 @@
 import { useMutation, useQuery } from "react-query";
-import { Col, Container, Label, Row, Spinner } from "reactstrap";
 import { useContext, useState } from "react";
 import { AxiosClient_Cate } from "@/src/libs/AxiosClient";
 import Swal from "sweetalert2";
-import { SetToUpperCase, capitalizeFirstLetter, replaceSpacesWithDashes, trimToTwoDecimalPlaces } from "@/src/libs/CapitalizaText";
-import { MenuLeft } from "@/src/components/MenuLeft";
-import { Navbar } from "@/src/components/Navbar";
+import { 
+  SetToUpperCase, 
+  capitalizeFirstLetter, 
+  replaceSpacesWithDashes, 
+  trimToTwoDecimalPlaces } from "@/src/libs/CapitalizaText";
 import { MenuContext } from "@/pages/_app";
 import { useRouter } from "next/router";
 import { Button } from "@/src/components/Button";
+import { LoadingCom } from "@/src/components/LoadingComponent";
+
 
 export const AddMenus = () => {
-  const[checkprice, setCheckPrice]= useState(false)
+  const isMenu = useContext(MenuContext)
+  //const[checkprice, setCheckPrice]= useState(false)
   const[validate_slug, setValidateSlug] = useState(false)
-  const [checkboxValues, setCheckboxValues] = useState(false);
+  const [checkboxValues, setCheckboxValues] = useState(true);
   const [title_en, SetTitle_En] = useState("");
   const [title_kh, SetTitle_Kh] = useState("");
   const [title_ch, SetTitle_Ch] = useState("");
-  const[category_ID, setCategory_ID] = useState()
+  const[category_ID, setCategory_ID] = useState<number[]>([])
   const [code, SetCode] = useState("");
   const [price, SetPrice] = useState('');
   const [des, SetDes] = useState("");
@@ -29,7 +33,7 @@ export const AddMenus = () => {
   //const [inputArray, setInputArray] = useState([{me:'I like u ',you: 'Sorry,I have a bf already!'}])
   const router = useRouter()
 
-  const {mutate} = useMutation({
+  const {mutate, status } = useMutation({
     mutationFn: async(input:any) =>{
       return (await AxiosClient_Cate.post('/menu/create', input)).data
     },
@@ -55,6 +59,7 @@ export const AddMenus = () => {
         showConfirmButton: false,
         timer: 2000,
       });
+      //console.log(res)
     }
   })
   
@@ -67,18 +72,21 @@ export const AddMenus = () => {
 
   
   const handleChangeBox = (event:any, id:any) => {
+    //event.preventDefault()
     const checkbox = event.target
     if(checkbox.checked){
-      setCategory_ID(id)
-      setCheckboxValues(false)
+      category_ID.length>=0? setCheckboxValues(false) : setCheckboxValues(true)
+      setCategory_ID((prevCategories) => [...prevCategories, id]);
     }else{
-      //console.log('NOT Checked')
-      setCheckboxValues(true)
+      category_ID.length<=1? setCheckboxValues(true) : setCheckboxValues(false)
+      setCategory_ID((prevCategories) =>
+        prevCategories.filter((categoryId) => categoryId !== id)
+      );
+      
     }
     
   };
-  //console.log(category_ID)
-  
+
 
   const handleSubmit= (e:any) =>{
     e.preventDefault();
@@ -103,10 +111,13 @@ export const AddMenus = () => {
     formData.append('title_kh', input.title_kh)
     formData.append('title_ch', input.title_ch)
     formData.append('code', input.code)
-    formData.append('category_Id', input.category_Id)
     formData.append('description', input.des)
     formData.append('image', input.img)
-  
+
+    category_ID.forEach((p:any)=>{
+      formData.append('category_Id[]', p)
+    })
+     
     if(isOn===true){
       inputArray.forEach((obj:any, index:number) => {
         for (let key in obj) {
@@ -120,8 +131,6 @@ export const AddMenus = () => {
     setIssubmit(true)
     
     mutate(formData)
-    //Mutation.mutate(inputArray)
-
   }
   
   
@@ -129,8 +138,6 @@ export const AddMenus = () => {
   const handleBlur=(e:any) =>{
     const product = data?.map((s:any) => s.products)
     const res = product?.filter((p:any) => p.length>0);
-    //console.log(res)
-    //const menu = res[0]?.map((f:any) => f.code.toLowerCase() === e.toLowerCase())
     let check
     for(let i=0; i< res.length; i++){
       res[i]?.filter((p:any) =>{
@@ -138,16 +145,13 @@ export const AddMenus = () => {
           check=true
         }
       } )
-      //ch = false 
     }
     setValidateSlug(check===undefined?false:check)
-    
   }
   const handelBlurPrice =(e:any) =>{
     if(isNaN(e)){
       SetPrice('')
     }else{
-      //const roundedValue = parseFloat(e).toFixed(2);
       SetPrice(trimToTwoDecimalPlaces(e))
     }
   }
@@ -175,17 +179,10 @@ export const AddMenus = () => {
 
   const handleCancel = (e:any) =>{
     e.preventDefault()
-    SetCode('')
-    SetDes('')
-    SetImg('')
-    SetTitle_Ch('')
-    SetTitle_En('')
-    SetTitle_Kh('')
-    SetPrice('')
+    router.push("/menu/list")
   }
  
   const handleMutiple = (e:any)=>{
-    //e.preventDefault()
     const checkbox = document.getElementById("mutipleprice") as HTMLInputElement;
     if(checkbox.checked){
       setIsOn(true)
@@ -199,10 +196,14 @@ export const AddMenus = () => {
       const newArray = currentArray.map(item => ({...item, menu_code: e}));
       setInputArray(newArray);
   }
-  const isMenu = useContext(MenuContext)
   
   return (
     <>
+       {/*Start Preloader Section*/}
+        <LoadingCom
+            status={status}
+          />
+        {/*End Preloader Section*/}
 
       <div className={isMenu.menu?"main-body":"d-none"}>
         <h3 className="text-info">admin/menus</h3>
@@ -317,7 +318,7 @@ export const AddMenus = () => {
                 img?<img src="" id="img-show-upload-2"  width={250} height={150} alt="" />:''
               }
           </div>
-          <div className="my-2">
+          <div className="my-2 py-4">
           {
               data?.map((p:any, index:number) => {
                 return(
@@ -329,7 +330,7 @@ export const AddMenus = () => {
                   className="box01"
                   onChange={(e:any)=>handleChangeBox(e,p.id)}
                   />
-                  <h5 className="mx-3">{p.slug}</h5>
+                  <h5 className="mx-3">{p.title_en||p.slug}</h5>
                 </div>
                 )
               })

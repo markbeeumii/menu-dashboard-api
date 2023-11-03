@@ -1,4 +1,3 @@
-//import *as z from "zod";
 import { joiResolver, useForm, zodResolver } from "@mantine/form";
 import {
   NumberInput,
@@ -50,13 +49,6 @@ export const SignupPage = () => {
       const res = error.response.data.message;
       setNotificationText(res);
       setNotification(!notifacation);
-      // Swal.fire({
-      //   icon: "error",
-      //   title: "Error!",
-      //   text: `${res}`,
-      //   showConfirmButton: false,
-      //   timer: 2000,
-      // });
     },
   });
 

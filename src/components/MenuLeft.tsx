@@ -9,7 +9,7 @@ import { IconCalendarStats, IconChevronLeft, IconChevronRight ,
   IconLock, IconNotes,IconGauge,IconPresentationAnalytics,IconFileAnalytics, IconAdjustments
 } from '@tabler/icons-react';
 
-import { type } from "os"
+
 
 type MenuLeftProps={
   handleSetUser? :any
@@ -17,14 +17,22 @@ type MenuLeftProps={
 
 
 export const MenuLeft= ({handleSetUser}:MenuLeftProps) =>{
-  const [active, setActive] = useState(0)
   const router = useRouter()
+  const [active, setActive] = useState(()=>{
+    if(router.pathname==="/category/list" || router.pathname==="/category/edit"|| router.pathname==="/category/edit" ){
+      return 1
+    }else if(router.pathname==="/menu/list" || router.pathname==="/menu/create" || router.pathname==="/menu/edit"){
+      return 2
+    }
+    return 0
+  })
   const menus = submenus
   
   const isPage = useContext(PageContext)
   const isPageActive = useContext(PageActive)
-  
+  //console.log(active)
   return(
+    
     <>
 
         <div className="menu-left border-end bg-light" id="menu-pc" onClick={handleSetUser}>
@@ -35,7 +43,7 @@ export const MenuLeft= ({handleSetUser}:MenuLeftProps) =>{
               return(
                 <span  className="cover-link" key={index} >
                   <button   className={index===active?"link bg-info":"link"} onClick={()=> {setActive(index),router.push(`${p.url}`)}} >
-                     {p.name}  
+                     {p.name} 
                      {index===0?"": index===active?<BsChevronDown color="white" fontSize={20} />:<GrFormNext color="white" fontSize={20} />} 
                   
                  </button> 
@@ -44,7 +52,7 @@ export const MenuLeft= ({handleSetUser}:MenuLeftProps) =>{
                  {
                   p.children? p.children.map((s:any, i:number) => {
                     return(
-                        <Link className="link3"  href={s.url} key={i} > {s.name} </Link>
+                        <Link className="link3"  href={s.url} key={i} > {s.name}</Link>
                     )
                   }) : ''
                  }
@@ -102,6 +110,8 @@ export const MenuLeft= ({handleSetUser}:MenuLeftProps) =>{
       }
  
     </>
+    
+   
   )
 }
 

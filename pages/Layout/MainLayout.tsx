@@ -1,13 +1,14 @@
+//import router, { useRouter } from "next/router"
+//import axios from "axios"
+//import { error } from "console"
 import { MenuLeft } from "@/src/components/MenuLeft"
 import { Navbar } from "@/src/components/Navbar"
-import router, { useRouter } from "next/router"
 import { useContext, useEffect, useState } from "react"
 import { Spinner } from "reactstrap"
 import { MenuContext } from "../_app"
 import { AxiosClient_Cate, CurrectUser } from "@/src/libs/AxiosClient"
 import { useQuery } from "react-query"
-import axios from "axios"
-import { error } from "console"
+
 
 export const MainLayout = ({children}:any) =>{
   //const[menuLeftShow, setmenuLeftShow] = useState(false)

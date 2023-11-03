@@ -1,20 +1,41 @@
 import { useMutation, useQuery } from "react-query"
-import Category from "../create"
 import { AxiosClient_Cate } from "@/src/libs/AxiosClient"
-import { CardCategory } from "@/src/components/CardCategory"
-import { MenuLeft } from "@/src/components/MenuLeft"
-import { Navbar } from "@/src/components/Navbar"
 import { Spinner, Table } from "reactstrap"
 import { AiOutlineDelete, AiOutlineOrderedList, AiOutlineTable } from "react-icons/ai"
 import { TbEdit } from "react-icons/tb"
 import { useRouter } from "next/router"
-import { useContext } from "react"
+import { useContext, useEffect, useState } from "react"
 import { MenuContext } from "@/pages/_app"
 import Swal from "sweetalert2"
+import { LoadingCom } from "@/src/components/LoadingComponent"
 
 export const ListCategory = () =>{
+  const [loading, setLoading] = useState(false);
   const router = useRouter()
-  const {data, isLoading, refetch} = useQuery({
+
+  useEffect(() => {
+    const handleStart = () => {
+      //console.log(`Loading started: `);
+      setLoading(true);
+    };
+
+    const handleComplete = () => {
+     //console.log(`Loading completed`);
+      setLoading(false);
+    };
+
+    router.events.on('routeChangeStart', handleStart);
+    router.events.on('routeChangeComplete', handleComplete);
+    router.events.on('routeChangeError', handleComplete);
+
+    return () => {
+      router.events.off('routeChangeStart', handleStart);
+      router.events.off('routeChangeComplete', handleComplete);
+      router.events.off('routeChangeError', handleComplete);
+    };
+  }, [router]);
+
+  const {data, isLoading, refetch, status} = useQuery({
     queryKey: 'categories',
     queryFn: async () => {
       return (await AxiosClient_Cate.get('/categories')).data.categories
@@ -35,6 +56,12 @@ export const ListCategory = () =>{
     }
   });
 
+  const handleEdit=(e:any|number)=>{
+    setLoading(true);
+    router.push(`edit/${e}`) 
+      .then(() => setLoading(false))
+      .catch(() => setLoading(false));
+  }
 
   const handleDelete = (id:any) => {
     //e.preventDefault()
@@ -96,6 +123,13 @@ export const ListCategory = () =>{
 
   return(
     <>
+      {/*Start Preloader Section*/}
+          <LoadingCom
+            status={status}
+            isLoading={isLoading}
+            loading={loading}
+          />
+      {/*End Preloader Section*/}
 
     <div className={isMenu.menu?"main-body":"d-none"}>
       <h3 className="text-info">admin/categories</h3>
@@ -110,7 +144,7 @@ export const ListCategory = () =>{
             <th> Title Ch </th>
             <th> Slug </th>
             <th> Featured Image</th>
-            <th> Action </th>
+            <th className="px-5"> Action </th>
           </tr>
         </thead>
         <tbody>
@@ -119,14 +153,16 @@ export const ListCategory = () =>{
               return(
                 <tr key={index}>
                   <th key={index} scope="row" className="text-primary py-4">  {index+1} </th>
-                  <td className="py-4"> {res.title_en} </td>
-                  <td className="py-4"> {res.title_kh} </td>
-                  <td className="py-4"> {res.title_ch} </td>
-                  <td className="py-4 text-info"> {res.slug} </td>
-                  <td> <img src={res.thumbnail} width={110} height={70} alt="" /> </td>
-                  <td className="py-4"> 
-                    <TbEdit fontSize={25} className="mx-4" color="blue" cursor={'pointer'} onClick={()=> router.push(`edit/${res.slug}`)} />
-                    <AiOutlineDelete color="red" fontSize={25} className="mx-4" cursor={'pointer'} onClick={()=> handleDelete(res.id) } />
+                  <td className="py-4"> {res.title_en?res.title_en: 'N/A'} </td>
+                  <td className="py-4"> {res.title_kh?res.title_kh:"N/A"} </td>
+                  <td className="py-4"> {res.title_ch?res.title_ch:"N/A"} </td>
+                  <td className="py-4 text-info"> {res.slug?res.slug:"N/A"} </td>
+                  <td> <img src={res.thumbnail?res.thumbnail:"../img_loading.jpeg"} width={110} height={70} alt="" /> </td>
+                  <td className="py-4 px-0"> 
+                    <span className={res.slug==="uncategorized"?"d-none":""}>
+                      <TbEdit fontSize={25} className="mx-4 justify-content-start" color="blue" cursor={'pointer'} onClick={()=> handleEdit(res.slug)} />
+                      <AiOutlineDelete color="red" fontSize={25} className={"mx-4"} cursor={'pointer'} aria-disabled onClick={()=> handleDelete(res?.slug==="uncategorized"?'':res.id) } />
+                    </span>
                   </td>
                   
                 </tr>

@@ -11,7 +11,7 @@ export default function Home() {
   const router = useRouter()
   useEffect(()=>{
     if(window.localStorage.getItem('token')){
-      router.push('/')
+      //router.push('/')
     }else{
       router.push({pathname:'/login'})
     }
@@ -20,10 +20,10 @@ export default function Home() {
   return (
     <>
       <Head>
-        <title>Ezy Menu Admin @mark_bee </title>
+        <title>Ezy Menu Admin By Godital </title>
         <meta name="description" content=" Power by Mark bee" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <link rel="icon" href="/favicon.ico" />
+        <link rel="icon" href="https://ezy-menu-user.vercel.app/logo_footer.png" />
       </Head>
      <HomePageScreen/>
     </>

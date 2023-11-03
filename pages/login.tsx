@@ -1,4 +1,4 @@
-import { z, Schema, ZodSchema } from "zod";
+import { z } from "zod";
 import { useForm, zodResolver } from "@mantine/form";
 import {
   NumberInput,
@@ -47,7 +47,6 @@ export const LoginPage = () => {
         showConfirmButton: false,
         timer: 2000,
       });
-      //console.log(token?.token)
       localStorage.setItem('token',token?.token)
       isMenu.setMenu(!isMenu.menu)
       router.push('/')
@@ -56,18 +55,10 @@ export const LoginPage = () => {
       const res = error.response.data.message
       setNotificationText(res)
       setNotification(true)
-      // Swal.fire({
-      //   icon: "error",
-      //   title: "Error!",
-      //   text: `${res}`,
-      //   showConfirmButton: false,
-      //   timer: 2000,
-      // });
     }
   })
   
   const schema = z.object({
-    //name: z.string().min(2, { message: "Name should have at least 2 letters" }),
     email: z.string().email({ message: "Invalid email" }),
     age: z
       .number()
@@ -90,7 +81,6 @@ export const LoginPage = () => {
   });
 
   const handleSubmit = (e: any) => {
-    //e ? console.log(e) : console.log("Validate");
     const formData = new FormData() as FormData
     formData.append('username', e.name)
     formData.append('email',e.email)
@@ -116,13 +106,6 @@ export const LoginPage = () => {
                   onSubmit={form.onSubmit((values) => handleSubmit(values))}
                   className="px-2"
                 >
-                  {/* <TextInput
-                    withAsterisk
-                    label="Name"
-                    placeholder="John Doe"
-                    mt="sm"
-                    {...form.getInputProps("name")}
-                  /> */}
                   <TextInput
                     withAsterisk
                     label="Email"
@@ -147,14 +130,10 @@ export const LoginPage = () => {
                     className="my-1"
 
                   />
-
                   <Group position="right" mt="xl">
                     <Button type="submit">Submit</Button>
                   </Group>
                 </form>
-                {/* <div id="center d-none">
-                  <Link href={''}>Singup</Link>
-                </div> */}
                 <div className="d-block mt-4">
                   <div id="center">
                     <Link href={''} className="mx-3 text-secondary"> <AiFillGithub fontSize={30}  /> </Link>
