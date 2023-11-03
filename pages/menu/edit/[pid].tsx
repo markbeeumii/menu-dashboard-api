@@ -1,5 +1,5 @@
 import { MenuContext } from "@/pages/_app";
-import { Button } from "@/src/components/Button";
+//import { Button } from "@/src/components/Button";
 import { ButtonEdit } from "@/src/components/ButtonEdit";
 import { AxiosClient_Cate, baseURL } from "@/src/libs/AxiosClient";
 import { SetToUpperCase, capitalizeFirstLetter, imgUpload, replaceSpacesWithDashes, trimToTwoDecimalPlaces } from "@/src/libs/CapitalizaText";
@@ -14,7 +14,7 @@ export const EditMenu = ({category,menu}:any) =>{
   const router = useRouter()
   const {pid} = router.query
   const upID= Number(pid)
-  const[checkedBox,setCheckedBox]=useState(category.slug===menu.category.slug?true:false)
+  //const[checkedBox,setCheckedBox]=useState(category.slug===menu.category.slug?true:false)
   const[arrListMenu, setArraylistMenu]= useState([])
   const[checkprice, setCheckPrice]= useState(false)
   const[validate_slug, setValidateSlug] = useState(menu?.code?false:true)
@@ -22,7 +22,9 @@ export const EditMenu = ({category,menu}:any) =>{
   const [title_en, SetTitle_En] = useState(menu?menu.title_en:"");
   const [title_kh, SetTitle_Kh] = useState(menu?menu.title_kh:"");
   const [title_ch, SetTitle_Ch] = useState(menu?menu.title_ch:"");
-  const[category_ID, setCategory_ID] = useState(menu?menu.category_Id:null)
+  const[category_ID, setCategory_ID] = useState<any[]>(
+    menu?.menu_category? menu.menu_category?.map((g:any)=> g.category_id)
+    :menu.category_Id)
   const [code, SetCode] = useState(menu?menu.code:"");
   const [price, SetPrice] = useState(menu?menu.price:null);
   const [des, SetDes] = useState(menu?menu.description:"");
@@ -44,7 +46,7 @@ export const EditMenu = ({category,menu}:any) =>{
     }
   },);
 
-  const {mutate} = useMutation({
+  const {mutate, status} = useMutation({
     mutationFn: async(input:any) =>{
       return (await AxiosClient_Cate.patch(`/menu/update/${upID}`, input)).data
     },
@@ -72,7 +74,7 @@ export const EditMenu = ({category,menu}:any) =>{
   })
   const {data} = useQuery({
     queryKey: 'categories',
-    queryFn: async() => {
+    queryFn: async () => {
       return (await AxiosClient_Cate.get('/categories')).data.categories
     }
   })
@@ -114,9 +116,14 @@ export const EditMenu = ({category,menu}:any) =>{
     formData.append('title_kh', input.title_kh)
     formData.append('title_ch', input.title_ch)
     formData.append('code', input.code)
-    formData.append('category_Id', input.category_Id)
+    //formData.append('category_Id', input.category_Id)
     formData.append('description', input.des)
     formData.append('image', input.img)
+
+    //Loop multiple categories
+    category_ID.forEach((p:any)=>{
+      formData.append('category_Id[]', p)
+    })
 
     if(isOn===true){
       inputArray.forEach((obj:any, index:number) => {
@@ -182,22 +189,33 @@ export const EditMenu = ({category,menu}:any) =>{
   }
 
   const handleClickCheckBox = (e: React.ChangeEvent<HTMLInputElement>, slug: any)=>{
+    
     if (e.target.checked) {
-      //console.log('Checkbox is checked with slug => ', slug);
-      setCategory_ID(slug)
-      const radioButtons = document.querySelectorAll(`input[type='radio'][name='${e.target.name}']`);
-    radioButtons.forEach((button:any) => {
-      if (button.value !== slug) {
-        button.checked = false;
-      }
-    });
+      category_ID.length>=0? setCheckboxValues(false) : setCheckboxValues(true)
+      setCategory_ID((prevCategories) => [...prevCategories, slug]);
+    //   //console.log('Checkbox is checked with slug => ', slug);
+    //   //console.log(slug)
+    //   setCategory_ID(slug)
+    //   const radioButtons = document.querySelectorAll(`input[type='radio'][name='${e.target.name}']`);
+    // console.log(radioButtons)
+    //   radioButtons.forEach((button:any) => {
+    //   if (button.value !== slug) {
+    //     button.checked = false;
+    //   }
+    // });
     } else {
+      category_ID.length<=1? setCheckboxValues(true) : setCheckboxValues(false)
+      setCategory_ID((prevCategories) =>
+        prevCategories.filter((categoryId) => categoryId !== slug)
+      );
       //console.log('Checkbox is unchecked');
-      setCategory_ID('')
+      //setCategory_ID([])
     }
     
   }
   
+  //console.log(category_ID)
+
 
   const handleFileUpload = (e:any) => {
     //console.log('No file selected');
@@ -228,13 +246,14 @@ export const EditMenu = ({category,menu}:any) =>{
 
   const handleCancel = (e:any) =>{
     e.preventDefault()
-    SetCode('')
-    SetDes('')
-    SetImg('')
-    SetTitle_Ch('')
-    SetTitle_En('')
-    SetTitle_Kh('')
-    SetPrice('')
+    // SetCode('')
+    // SetDes('')
+    // SetImg('')
+    // SetTitle_Ch('')
+    // SetTitle_En('')
+    // SetTitle_Kh('')
+    // SetPrice('')
+    router.push('/menu/list')
   }
   const handleMutiple = (e:any)=>{
     //e.preventDefault()
@@ -256,9 +275,19 @@ export const EditMenu = ({category,menu}:any) =>{
 
   // console.log('from E-> ',inputArray)
    //console.log('Is Dele -> ',checkIsdelete)
-
+  //menu?.menu_category?.forEach((ex:any)=> console.log(ex?.category_id))
+  //console.log(category_ID)
+  
   return(
     <>
+      {/*Start Preloader Section*/}
+      <div className={status==="loading"?"pre-loading":"d-none"}>
+         <div className="cover-loader" role="status">
+          <span className="loader"></span>
+        </div> 
+      </div>
+      {/*End Preloader Section*/}
+
        <div className={isMenu.menu?"main-body":"d-none"}>
         <h3 className="text-info">admin/menus</h3>
         <form action="" className="px-1 form03 mt-4" onSubmit={handleSubmit}>
@@ -386,11 +415,36 @@ export const EditMenu = ({category,menu}:any) =>{
             }
           </div>
           <div className="my-2">
-          {
+           {
+            data?.map((p:any, index:number) => {
+              return(
+                <div className="d-flex" key={ index}>
+                <input
+                key={index}
+                type="checkbox"
+                name="myCheckboxGroup[]"
+                width={100}
+                className="box01"
+                value={index+1}
+                //value="checkboxValue"
+                onChange={(e:any)=> handleClickCheckBox(e,p.id)}
+                checked={
+                  //menu?.menu_category?.some((ex:any)=> ex.category_id === p.id? true : false)
+                  category_ID?.includes(p.id)?true: false
+                }
+                />
+                <h5 className="mx-3">{p.title_en || p.slug}  </h5>
+              </div>
+              )
+            })
+           }
+
+          {/*
              checkedBox? data?.map((p:any, index:number) => {
               return(
                 <div className="d-flex" key={ index}>
                 <input
+                key={index}
                 type="checkbox"
                 name="myCheckboxGroup[]"
                 width={100}
@@ -398,12 +452,20 @@ export const EditMenu = ({category,menu}:any) =>{
                 value={index+1}
                 //value="checkboxValue"
                 onChange={(e:any)=> {handleClickCheckBox(e,p.id),setCheckedBox(false)}}
-                checked={p.slug===menu.category.slug}
+                checked={
+                  //menu?.menu_category?.some((ex:any)=> ex.category_id === p.id? true : false)
+                  category_ID?.some((ex:any)=>{
+                    if(ex.category_id === p.id){
+                      return true
+                    }
+                  })
+                }
                 />
-                <h5 className="mx-3">{p.slug} </h5>
+                <h5 className="mx-3">{p.title_en || p.slug} {p.id} </h5>
               </div>
               )
-            }):
+            })
+            :
             data?.map((p:any, index:number) => {
               return(
                 <div className="d-flex" key={ index}>
@@ -416,11 +478,11 @@ export const EditMenu = ({category,menu}:any) =>{
                 //value="checkboxValue"
                 onChange={(e:any)=>handleClickCheckBox(e,p.id)}
                 />
-                <h5 className="mx-3">{p.slug} </h5>
+                <h5 className="mx-3">{p.title_en || p.slug} </h5>
               </div>
               )
             })
-          }
+          */}
           </div>
         </div>
       </div>
@@ -433,7 +495,8 @@ export default EditMenu
 export async function getServerSideProps(context: any) {
   const { pid } = context.query;
   const res = (await axios.get(baseURL+`/menu/${pid}`)).data.menu
-  const category = res?.category
+  const category = res?.menu_category
+  //console.log(res)
   return {
     props: {
       menu: res,

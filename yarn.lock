@@ -2845,10 +2845,6 @@ unbox-primitive@^1.0.2:
     has-symbols "^1.0.3"
     which-boxed-primitive "^1.0.2"
 
-universal-storage@^0.0.4:
-  version "0.0.4"
-  resolved "https://registry.yarnpkg.com/universal-storage/-/universal-storage-0.0.4.tgz#a52f965e581fe89a6c998cb3b6be802276ba0dd5"
-  integrity sha512-GhLiYu3W6QD0lU+VIPeS+KJN/t4NtFyDDnhwndconw9D81rkyZwKLzmIXF6uzYie13Eb/WBwgflVycEZJ7Kvhw==
 
 unload@2.2.0:
   version "2.2.0"

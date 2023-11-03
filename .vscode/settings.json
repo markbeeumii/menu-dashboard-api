@@ -1,4 +1,3 @@
 {
-  "dotenv.enableAutocloaking": false,
   "nuxt.isNuxtApp": false
 }

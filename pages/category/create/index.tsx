@@ -1,9 +1,11 @@
 import { MenuContext } from "@/pages/_app";
-import { MenuLeft } from "@/src/components/MenuLeft";
-import { Navbar } from "@/src/components/Navbar";
+//import { MenuLeft } from "@/src/components/MenuLeft";
+//import { Navbar } from "@/src/components/Navbar";
 import { AxiosClient_Cate } from "@/src/libs/AxiosClient";
-import { capitalizeFirstLetter, handleFileUpload, trimAndDashToLower } from "@/src/libs/CapitalizaText";
-import { error } from "console";
+import { 
+  capitalizeFirstLetter, 
+  handleFileUpload, 
+  trimAndDashToLower } from "@/src/libs/CapitalizaText";
 import { useRouter } from "next/router";
 import { useContext, useState } from "react";
 import { useMutation, useQuery } from "react-query";
@@ -17,7 +19,10 @@ export const Category = () =>{
   const [slug, SetSlug] = useState("");
   const [des, SetDes] = useState("");
   const[checkImg, setCheckImg]= useState('')
+  const[sms_slugError,setSms_slugError]= useState('')
+  const[sms_titleEn,setSms_titleEn]=useState('')
   const router = useRouter()
+  //const[preLoading,setPreloading] = useState(false)
 
   const {data} = useQuery({
     queryKey: 'categories',
@@ -25,22 +30,31 @@ export const Category = () =>{
       return (await AxiosClient_Cate.get('/categories')).data.categories
     }
   })
-  const {mutate} = useMutation({
+  const {mutate, status} = useMutation({
     mutationKey: 'categories',
     mutationFn: async (input:any) =>{
       return (await AxiosClient_Cate.post('/category/create', input)).data
     },
     onError: (error:any) =>{
       const res = error.response.data.message
-      Swal.fire({
-        icon: "error",
-        title: "Error!",
-        text: `${res}`,
-        showConfirmButton: false,
-        timer: 2000,
-      });
-
+      const sms = res.split('.')[1]
+      // Swal.fire({
+      //   icon: "error",
+      //   title: "Error!",
+      //   text: `${res}`,
+      //   showConfirmButton: false,
+      //   timer: 2000,
+      // });
+      console.log(sms)
+      if(res.split(' ')[0]==="slug" || res.split(' ')[0]==="Slug"){
+        setSms_slugError(res)
+        setValidateSlug(true)
+      }else{
+        setSms_titleEn(sms)
+        setValidateSlug(false)
+      }
     } ,
+    //onL
     onSuccess: () => {
       Swal.fire({
         icon: "success",
@@ -50,6 +64,7 @@ export const Category = () =>{
         timer: 2000,
       });
       router.push(`/category/list`)
+      //setPreloading(true)
     }
   })
 
@@ -79,19 +94,26 @@ export const Category = () =>{
     Dataform.append('image', input.img)
     //console.log("File=> ",file?.type,file?.name)
     mutate(Dataform)
+    
   }
 
   const handleBlur=(e:any) =>{
-    const res = data?.map((p:any) => p.slug.toLowerCase() === e.toLowerCase());
-    let ch
-    for(let i=0; i< res.length; i++){
-      if(res[i]===true){
-        ch = res[i]
+    //console.log(sms_slugError)
+    if(!e){
+      setValidateSlug(true)
+    }else{
+      setValidateSlug(false)
+      const res = data?.map((p:any) => p.slug.toLowerCase() === e.toLowerCase());
+      let ch
+      for(let i=0; i< res.length; i++){
+        if(res[i]===true){
+          ch = res[i]
+        }
+        //ch = false 
       }
-      //ch = false 
-    }
-    setValidateSlug(ch===undefined?false:ch)
+      setValidateSlug(ch===undefined?false:ch)
     
+    }
   }
   const handleBlueTitleEn= (e:any)=>{
     if(!slug){
@@ -128,24 +150,40 @@ export const Category = () =>{
 
   const handleCancel = (e:any) =>{
     e.preventDefault()
-    SetTitle_En('')
-    SetTitle_Ch('')
-    SetTitle_Kh('')
-    SetSlug('')
-    SetDes("")
+    // SetTitle_En('')
+    // SetTitle_Ch('')
+    // SetTitle_Kh('')
+    // SetSlug('')
+    // SetDes("")
+    router.push("/category/list")
   }
 
   //console.log("check Img",checkImg)
   const isMenu = useContext(MenuContext)
+  // const mute = useMutation({
+  //   mutationKey:'save-me',
+  //   mutationFn: async ()=>{
+  //     return 'saved med'
+  //   }
+  // })
+
+ console.log(validate_slug)
 
   return(
     <>
+    {/*Start Preloader Section*/}
+      <div className={status==="loading"?"pre-loading":"d-none"}>
+         <div className="cover-loader" role="status">
+          <span className="loader"></span>
+        </div> 
+      </div>
+  {/*End Preloader Section*/}
       
        <div className={isMenu.menu?"main-body":"d-none"}>
         <h3 className="text-info">admin/category/create</h3>
         <form action="" className="px-1 form03 mt-4" onSubmit={handleSubmit}>
-          <div className="rowcol  d-flex justify-content-between">
-            <div className="col-01">
+          <div className="rowcol  d-flex justify-content-between mb-2">
+            <div className="col-01 py-1">
               <h6>Category Title (EN)</h6>
               <input
                 type="text"
@@ -155,6 +193,9 @@ export const Category = () =>{
                 onChange={(e: any) => SetTitle_En(capitalizeFirstLetter(e.target.value))}
                 onBlur={handleBlueTitleEn}
               />
+              <div className="py-1">
+                <p className={sms_titleEn && !title_en ?"text-warning m-0 p-0":"d-none"}>{sms_titleEn}</p>
+              </div>
             </div>
             <div className="col-01">
               <h6>Slug (uniqe)</h6>
@@ -166,7 +207,9 @@ export const Category = () =>{
                 onChange={(e: any) => SetSlug(e.target.value)}
                 onBlur={(e:any) => handleBlur(e.target.value)}
               />
-              <p className={validate_slug?"text-warning":"d-none"}>Slug must be uniqe</p>
+              <p className={validate_slug && slug?"text-warning":"d-none"}>This slug is already in used</p>
+              <p className={validate_slug && !slug?"text-warning":"d-none"}>slug must required</p>
+              {/* <p className={sms_slugError && !slug ?"text-warning":"d-none"}>{sms_slugError}</p> */}
             </div>
           </div>
           <div className="rowcol mb-4 d-flex justify-content-between">

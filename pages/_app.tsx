@@ -1,16 +1,21 @@
-// import '@/styles/globals.css'
+
 import type { AppProps } from 'next/app'
 import { QueryClient, QueryClientProvider } from 'react-query'
 import MainLayout from './Layout/MainLayout'
 import 'bootstrap/dist/css/bootstrap.css'
-import { ReactQueryDevtools } from 'react-query/devtools'
-import '../styles/homepage.css'
-import '../styles/menu.css'
-import '../styles/form.css'
-import '@/styles/Button.scss'
 import { createContext, useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
-import { number } from 'joi'
+import '@/styles/main.scss'
+
+// import '@/styles/globals.css'
+//import { ReactQueryDevtools } from 'react-query/devtools'
+//import { number } from 'joi'
+//import '../styles/homepage.css'
+//import '../styles/menu.css'
+//import '../styles/form.css'
+//import '@/styles/Button.scss'
+//import '@/styles/Loading.scss'
+
 
 export const MenuContext = createContext({ menu: false, setMenu: (menu: boolean) => { } })
 export const PageContext = createContext({ page: false, setPage: (page: boolean) => { } })
@@ -25,7 +30,7 @@ export default function App({ Component, pageProps }: AppProps) {
 
   useEffect(()=>{
     if(window.localStorage.getItem('token')){
-      router.push('/')
+      //router.push('/')
       setMenu(true)
     }else{
       router.push({pathname:'/login'})

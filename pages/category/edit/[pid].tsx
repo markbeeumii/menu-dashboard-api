@@ -1,21 +1,22 @@
+//import { CardCategory } from "@/src/components/CardCategory";
+//import { MenuLeft } from "@/src/components/MenuLeft";
+//import { Navbar } from "@/src/components/Navbar";
+// import {
+//   AiOutlineTable,
+//   AiOutlineDelete,
+//   AiOutlineOrderedList,
+// } from "react-icons/ai";
+//import { TbEdit } from "react-icons/tb";
+//import { Col } from "reactstrap";
 import { MenuContext } from "@/pages/_app";
-import { CardCategory } from "@/src/components/CardCategory";
-import { MenuLeft } from "@/src/components/MenuLeft";
-import { Navbar } from "@/src/components/Navbar";
 import { AxiosClient_Cate, baseURL } from "@/src/libs/AxiosClient";
 import { capitalizeFirstLetter, handleFileUpload, imgUpload, trimAndDashToLower } from "@/src/libs/CapitalizaText";
 import axios from "axios";
 import { useRouter } from "next/router";
 import { useState,useContext } from "react";
-import {
-  AiOutlineTable,
-  AiOutlineDelete,
-  AiOutlineOrderedList,
-} from "react-icons/ai";
-import { TbEdit } from "react-icons/tb";
-import { useMutation, useQuery } from "react-query";
-import { Col } from "reactstrap";
 import Swal from "sweetalert2";
+import { useMutation, useQuery } from "react-query";
+
 
 const BaseURL = process.env.NEXT_URL_CATEGORY?process.env.NEXT_URL_CATEGORY: ''
 
@@ -32,28 +33,47 @@ export const ViewCategory = ({ products, category }: any) => {
   const [des, SetDes] = useState(category?.description);
   const[imgcheck, SetImg]= useState('')
   const[validate_slug, setValidateSlug] = useState(category?.slug?false:true)
-  
+  const[sms_titleEn,setSms_titleEn]=useState('')
+  const[ms_slug,setMs_slug]=useState('')
+  // if(!pid || pid===undefined || pid===""){
+  //   console.log('Loading....')
+  // }
+
   const {data} = useQuery({
     queryKey: 'categories',
     queryFn: async() => {
       return (await AxiosClient_Cate.get('/categories')).data.categories
     }
   })
-  const { mutate } = useMutation({
+  const { mutate, status } = useMutation({
     mutationKey: "category",
     mutationFn: async (input: any) => {
       return (await AxiosClient_Cate.patch(`/category/update/${pid}`, input))
         .data;
     },
     onError: (error: any) => {
-      const res = error.response.data.message;
-      Swal.fire({
-        icon: "error",
-        title: "Error!",
-        text: `${res}`,
-        showConfirmButton: false,
-        timer: 2000,
-      });
+      //console.log(error)
+
+      // const res = error.response.data.message;
+      // Swal.fire({
+      //   icon: "error",
+      //   title: "Error!",
+      //   text: `${res}`,
+      //   showConfirmButton: false,
+      //   timer: 2000,
+      // });
+      const message = error?.response?.data?.message
+      //console.log(message)
+      if(message?.split(" ")[0]==="This"){
+        setSms_titleEn("")
+        setMs_slug(message)
+        setValidateSlug(true)
+      }else{
+        setSms_titleEn(message)
+        setMs_slug("")
+        setValidateSlug(false)
+      }
+      
     },
     onSuccess: () => {
       Swal.fire({
@@ -97,13 +117,11 @@ export const ViewCategory = ({ products, category }: any) => {
     mutate(Dataform);
   };
   const handleOnBlur = (e:any) =>{
-    //const product = data?.map((s:any) => s.products)
-    const res = data?.map((p:any) => p.slug.toLowerCase() === e.toLowerCase());
-    //console.log(res)
-    let check:any
-    if(category.slug === e){
-      setValidateSlug(false)
+    if(!e){
+      setValidateSlug(true)
     }else{
+      setValidateSlug(false)
+      const res = data?.map((p:any) => p.slug.toLowerCase() === e.toLowerCase());
       let ch
       for(let i=0; i< res.length; i++){
         if(res[i]===true){
@@ -112,7 +130,8 @@ export const ViewCategory = ({ products, category }: any) => {
         //ch = false 
       }
       setValidateSlug(ch===undefined?false:ch)
-  }
+    
+    }
   }
   const handleFileUpload = (e:any) => {
     if (!e.target.files || e.target.files.length === 0) {
@@ -144,21 +163,41 @@ export const ViewCategory = ({ products, category }: any) => {
         SetSlug(trimAndDashToLower(title_en))
       }
     }
+    // data.map((x:any)=>{
+    //   if(x.slug === e.target.value.toLowerCase()){
+    //    setValidateSlug(false)
+    //    //
+    //   }else{
+    //     console.log('hh')
+    //     setValidateSlug(true)
+    //   }
+    // })
+    // console.log(validate_slug)
   }
 
   const handelCancel = (e:any) =>{
     e.preventDefault()
-    SetTitle_En('')
-    SetTitle_Ch('')
-    SetTitle_Kh('')
-    SetSlug('')
-    SetDes("")
+    // SetTitle_En('')
+    // SetTitle_Ch('')
+    // SetTitle_Kh('')
+    // SetSlug('')
+    // SetDes("")
+    router.push('/category/list')
   }
 
   const isMenu = useContext(MenuContext)
-
+  //console.log(validate_slug)
   return (
     <>
+    
+    {/*Start Preloader Section*/}
+      <div className={status==="loading"?"pre-loading":"d-none"}>
+         <div className="cover-loader" role="status">
+          <span className="loader"></span>
+        </div> 
+      </div>
+  {/*End Preloader Section*/}
+
       <div className={isMenu.menu?"main-body":"d-none"}>
         <h3 className="text-info">admin/categories/edit</h3>
         <div className="mt-3">
@@ -174,6 +213,9 @@ export const ViewCategory = ({ products, category }: any) => {
                   onChange={(e: any) => SetTitle_En(capitalizeFirstLetter(e.target.value))}
                   onBlur={handleBlueTitleEn}
                 />
+                <div className="py-1">
+                <p className={sms_titleEn && !title_en ?"text-warning m-0 p-0":"d-none"}>{sms_titleEn}</p>
+              </div>
               </div>
               <div className="col-01">
                 <h6>Slug (uniqe)</h6>
@@ -185,7 +227,8 @@ export const ViewCategory = ({ products, category }: any) => {
                   onChange={(e: any) => SetSlug(e.target.value)}
                   onBlur={(e: any) => handleOnBlur(e.target.value)}
                 />
-                <p>{validate_slug?'Slug must uniqe':''}</p>
+                <p className={validate_slug && slug?"text-warning":"d-none"}>This slug is already in used</p>
+                <p className={validate_slug && !slug?"text-warning":"d-none"}>slug must required</p>
               </div>
             </div>
             <div className="rowcol mb-4 d-flex justify-content-between">
